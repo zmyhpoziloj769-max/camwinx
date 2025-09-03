@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Навигатор абитуриента НВК</title>
+
+  <!-- model-viewer -->
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+
+  <style>
+    :root{
+      --bg: #0b1a2a;
+      --blue-1:#15a4ff;
+      --blue-2:#0066ff;
+      --blue-3:#78c6ff;
+      --white:#ffffff;
+      --glass: rgba(255,255,255,0.12);
+      --glass-strong: rgba(255,255,255,0.18);
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+      --radius: 16px;
+    }
+    *{box-sizing:border-box}
+    html,body{
+      height:100%;
+      margin:0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+      color: var(--white);
+      background: var(--bg) url('https://i.postimg.cc/KYXPD2fp/photo-2025-09-03-14-55-54.jpg') center/cover fixed no-repeat;
+    }
+
+    /* Frosted glass container */
+    .wrap{
+      backdrop-filter: blur(10px) saturate(120%);
+      background: linear-gradient(135deg, rgba(0, 102, 255, 0.18), rgba(21, 164, 255, 0.12)) ;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin: 32px auto;
+      width: min(1200px, 92vw);
+      overflow: hidden;
+    }
+
+    header{
+      padding: 22px 24px 12px;
+      display:flex;
+      align-items:center;
+      gap:16px;
+      border-bottom:1px solid rgba(255,255,255,0.08);
+      background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06));
+    }
+
+    .logo{
+      width:58px;height:58px;border-radius:14px;
+      background: conic-gradient(from 210deg, var(--blue-1), var(--blue-2), var(--blue-3), var(--blue-1));
+      display:grid; place-items:center;
+      box-shadow: inset 0 0 20px rgba(255,255,255,0.35);
+    }
+    .logo svg{filter:drop-shadow(0 3px 8px rgba(0,0,0,.35))}
+
+    h1{
+      margin:0;
+      font-size: clamp(22px, 3vw, 34px);
+      letter-spacing:.5px;
+      text-shadow: 0 6px 18px rgba(0,0,0,.45);
+    }
+    .subtitle{
+      opacity:.85; font-size:14px; margin-top:2px
+    }
+
+    /* Top Tabs */
+    .tabs{
+      display:flex;
+      gap:10px;
+      padding: 14px 14px 0 14px;
+      flex-wrap:wrap;
+    }
+    .tab-btn{
+      border:1px solid rgba(255,255,255,.18);
+      padding:10px 14px;
+      border-radius:12px;
+      background: linear-gradient(135deg, rgba(120,198,255,0.35), rgba(0,102,255,0.25));
+      color:#fff;
+      cursor:pointer;
+      display:flex; align-items:center; gap:8px;
+      transition:.2s transform,.2s box-shadow;
+      box-shadow: 0 8px 20px rgba(0,0,0,.25);
+      user-select:none;
+    }
+    .tab-btn svg{flex:0 0 auto}
+    .tab-btn:hover{ transform: translateY(-2px); box-shadow: 0 12px 26px rgba(0,0,0,.35); }
+    .tab-btn.active{ outline:2px solid rgba(21,164,255,.9); background: linear-gradient(135deg, rgba(120,198,255,0.55), rgba(0,102,255,0.45)); }
+
+    .sections{ padding: 16px; }
+    .section{ display:none; }
+    .section.active{ display:block; }
+
+    /* Cards / inner tabs */
+    .card{
+      background: rgba(255,255,255,0.08);
+      border:1px solid rgba(255,255,255,0.18);
+      border-radius:16px;
+      padding:16px;
+      box-shadow: var(--shadow);
+    }
+
+    .row{ display:grid; grid-template-columns: repeat(12, 1fr); gap:14px; }
+    .col-4{ grid-column: span 4; }
+    .col-6{ grid-column: span 6; }
+    .col-8{ grid-column: span 8; }
+    .col-12{ grid-column: span 12; }
+
+    /* Pill buttons for inner choices */
+    .pills{ display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 14px; }
+    .pill{
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);
+      background: linear-gradient(135deg, rgba(120,198,255,0.35), rgba(0,102,255,0.25));
+      cursor:pointer;
+      transition:.2s;
+      user-select:none;
+      font-weight:600;
+    }
+    .pill:hover{ transform: translateY(-1px); }
+    .pill.active{ outline:2px solid rgba(21,164,255,.9); }
+
+    .mini{
+      display:flex; gap:12px; align-items:center;
+      padding:10px; border-radius:12px;
+      background: rgba(255,255,255,0.08);
+      border:1px solid rgba(255,255,255,0.18);
+    }
+    .mini img{ width:80px; height:60px; object-fit:cover; border-radius:10px; }
+    .mini h3{ margin:0 0 6px; font-size:16px; }
+    .mini p{ margin:0; opacity:.9; }
+
+    a.link-btn{
+      text-decoration:none; color:#fff; font-weight:700;
+      background: linear-gradient(135deg, var(--blue-2), var(--blue-1));
+      padding:10px 14px; border-radius:12px; display:inline-flex; gap:8px; align-items:center;
+      border:1px solid rgba(255,255,255,.18);
+      box-shadow: 0 10px 20px rgba(0,0,0,.35);
+    }
+    a.link-btn:hover{ filter:brightness(1.05); transform: translateY(-1px); }
+
+    /* 3D */
+    model-viewer{
+      width:100%;
+      height:70vh;
+      background: radial-gradient(1200px 60% at 50% 100%, rgba(21,164,255,.25), rgba(0,0,0,0) 60%) , rgba(0,0,0,.25);
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.18);
+      overflow:visible;
+    }
+    /* Hotspot button (blue/white, gradient) */
+    .hotspot-btn{
+      all: unset;
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 10px;
+      border-radius:999px;
+      cursor:pointer;
+      user-select:none;
+      background: linear-gradient(135deg, rgba(120,198,255,0.95), rgba(0,102,255,0.95));
+      color:#fff;
+      border:1px solid rgba(255,255,255,.6);
+      box-shadow: 0 8px 18px rgba(0,0,0,.35);
+      font-weight:700;
+      font-size:13px;
+      white-space:nowrap;
+    }
+    .hotspot-btn svg{ filter: drop-shadow(0 2px 4px rgba(0,0,0,.35)); }
+
+    /* Tooltip near hotspot */
+    .tip{
+      position:absolute;
+      left: 50%;
+      transform: translate(-50%, calc(-100% - 10px));
+      background: rgba(14,24,44,0.96);
+      border:1px solid rgba(120,198,255,.6);
+      border-radius:12px;
+      padding:10px 12px;
+      min-width: 180px;
+      color:#e8f6ff;
+      box-shadow: var(--shadow);
+      display:none;
+      pointer-events:none;
+    }
+    .tip h4{ margin:0 0 6px; font-size:14px; color:#cfeaff }
+    .tip p{ margin:0; font-size:13px; opacity:.95 }
+    .tip::after{
+      content:"";
+      position:absolute; bottom:-8px; left:50%; transform:translateX(-50%);
+      border:8px solid transparent; border-top-color: rgba(14,24,44,0.96);
+      filter: drop-shadow(0 -1px 0 rgba(120,198,255,.6));
+    }
+    .hotspot-open .tip{ display:block; }
+
+    /* Gallery */
+    .gallery{
+      display:grid; gap:12px;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    }
+    .gallery a{
+      display:block; border-radius:14px; overflow:hidden; border:1px solid rgba(255,255,255,.18);
+      box-shadow: var(--shadow);
+    }
+    .gallery img{ width:100%; height:180px; object-fit:cover; display:block; }
+
+    footer{
+      padding: 20px; opacity:.9; text-align:center;
+    }
+
+    /* Error banner for 3D load */
+    .err3d{
+      display:none;
+      margin-top:10px;
+      background: rgba(255, 68, 68, .12);
+      border: 1px solid rgba(255, 68, 68, .45);
+      color: #fff;
+      padding:10px 12px; border-radius:12px;
+    }
+    .err3d a{ color:#fff; text-decoration:underline; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo" aria-hidden="true">
+        <!-- simple white compass icon -->
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="9" stroke="white" stroke-width="2"/>
+          <path d="M15 9l-2.2 5.2L7.5 14.5 15 9z" fill="white"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Навигатор абитуриента НВК</h1>
+        <div class="subtitle">Эффектный интерактивный гид: транспорт, покупки, 3D-кампус и полезные ссылки</div>
+      </div>
+    </header>
+
+    <!-- Top-level tabs -->
+    <div class="tabs" role="tablist" aria-label="Разделы">
+      <button class="tab-btn active" data-tab="transport" role="tab" aria-selected="true">
+        <!-- bus icon -->
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M4 16v-7c0-3 2-5 8-5s8 2 8 5v7c0 1-.8 2-1.8 2H18v2h-2v-2H8v2H6v-2H5.8C4.8 18 4 17 4 16zm2-6h12V9H6v1zm0 3h12v-1H6v1zM7 17.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm10 0a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"/></svg>
+        Транспорт
+      </button>
+      <button class="tab-btn" data-tab="shops" role="tab" aria-selected="false">
+        <!-- cart icon -->
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M7 18a2 2 0 104 0 2 2 0 00-4 0zm7 0a2 2 0 104 0 2 2 0 00-4 0zm1.1-3H8l-2-9H3V4h3.3l.4 2H21l-2 7.5a2 2 0 01-1.9 1.5z"/></svg>
+        Закупки / еда
+      </button>
+      <button class="tab-btn" data-tab="campus" role="tab" aria-selected="false">
+        <!-- cube icon -->
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 2l9 5v10l-9 5-9-5V7l9-5zm0 2.2L6 7.3v.1l6 3.3 6-3.3v-.1l-6-3.1zm-7 6.1v6.6l6 3.3v-6.6l-6-3.3zm8 9.9l6-3.3v-6.6l-6 3.3v6.6z"/></svg>
+        3D-модель
+      </button>
+      <button class="tab-btn" data-tab="links" role="tab" aria-selected="false">
+        <!-- link icon -->
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M10 13a5 5 0 007 0l2-2a5 5 0 00-7-7l-1 1 2 2 1-1a2 2 0 112.8 2.8l-2 2A2 2 0 0111 9H9a5 5 0 000 7l1 1 2-2-1-1a2 2 0 010-2.8z"/></svg>
+        Полезные ссылки
+      </button>
+      <button class="tab-btn" data-tab="dorm" role="tab" aria-selected="false">
+        <!-- photo icon -->
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M20 5h-3.6l-1.2-2H8.8L7.6 5H4a2 2 0 00-2 2v11a2 2 0 002 2h16a2 2 0 002-2V7a2 2 0 00-2-2zM12 19a6 6 0 110-12 6 6 0 010 12z"/></svg>
+        Общежитие
+      </button>
+      <a class="tab-btn" href="https://raw.githubusercontent.com/Elkh777/off/main/%D0%9D%D0%B0%D0%B2%D0%B8%D0%B3%D0%B0%D1%82%D0%BE%D1%80%D0%A3%D0%A0%D0%A4%D0%A3.pdf" target="_blank" rel="noopener">
+        <!-- download icon -->
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 3v10l3-3 1.5 1.5L12 17l-4.5-5.5L9 10l3 3V3h0zM5 19h14v2H5v-2z"/></svg>
+        Оффлайн версия
+      </a>
+    </div>
+
+    <div class="sections">
+
+      <!-- 1. TRANSPORT -->
+      <section id="transport" class="section active">
+        <div class="card">
+          <div class="row">
+            <div class="col-12">
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+                <h2 style="margin:0">Транспорт</h2>
+                <a class="link-btn" href="https://yandex.ru/maps/" target="_blank" rel="noopener">
+                  Открыть Яндекс&nbsp;Карты
+                </a>
+              </div>
+              <div class="pills" role="tablist" aria-label="Маршруты">
+                <span class="pill active" data-subtab="bus56">Автобус 56</span>
+                <span class="pill" data-subtab="bus44">44-(25,36,77)</span>
+                <span class="pill" data-subtab="bus66">66-77</span>
+                <span class="pill" data-subtab="bus65">65-25,36 / 60,89</span>
+              </div>
+            </div>
+
+            <!-- 56 -->
+            <div class="col-12 subtab bus56">
+              <div class="mini">
+                <img src="https://i.postimg.cc/fR8QHYGD/2025-09-03-233939.png" alt="56" />
+                <div>
+                  <h3>Автобус 56</h3>
+                  <p>Начинает ходить: <b>05:52</b></p>
+                  <p>Периодичность: <b>каждые 20 минут</b></p>
+                  <p>Время поездки: <b>~38 мин (19 остановок)</b></p>
+                  <p>Конечная остановка: <b>Улица Малышева</b></p>
+                  <p>Пешком: <b>15 мин</b></p>
+                </div>
+              </div>
+            </div>
+
+            <!-- 44-(25,36,77) -->
+            <div class="col-12 subtab bus44" style="display:none">
+              <div class="mini">
+                <img src="https://i.postimg.cc/3R41vD5K/2025-09-04-002320.png" alt="44-25-36-77" />
+                <div>
+                  <h3>44-(25,36,77)</h3>
+                  <p><b>44 от кампуса УРФУ:</b></p>
+                  <p>Время поездки: <b>~12 мин (5 остановок)</b></p>
+                  <p>Конечная остановка: <b>Улица Академика Шварца</b></p>
+                  <p><b>36, 25 троллейбус, 77 автобус:</b></p>
+                  <p>Время поездки: <b>~22 мин</b></p>
+                  <p>Пешком: <b>2 мин</b></p>
+                </div>
+              </div>
+            </div>
+
+            <!-- 66-77 -->
+            <div class="col-12 subtab bus66" style="display:none">
+              <div class="mini">
+                <img src="https://i.postimg.cc/dVg3HPPq/2025-09-03-235758.png" alt="66-77" />
+                <div>
+                  <h3>66-77</h3>
+                  <p><b>66:</b></p>
+                  <p>Время поездки: <b>~19 мин (7 остановок)</b></p>
+                  <p>Конечная остановка: <b>Улица Академика Шварца</b></p>
+                  <p><b>77:</b></p>
+                  <p>Время поездки: <b>~13 мин (22 остановок)</b></p>
+                  <p>Конечная остановка: <b>Профессорская</b></p>
+                </div>
+              </div>
+            </div>
+
+            <!-- 65-25,36/60,89 -->
+            <div class="col-12 subtab bus65" style="display:none">
+              <div class="mini">
+                <img src="https://i.postimg.cc/yYDhGKg5/2025-09-04-001201.png" alt="65-25,36-60,89" />
+                <div>
+                  <h3>65-25,36 / 60,89</h3>
+                  <p><b>65 от кампуса УРФУ:</b></p>
+                  <p>Время поездки: <b>~34 мин (21 остановок)</b></p>
+                  <p>Конечная остановка: <b>Библиотека имени Белинского</b></p>
+                  <p><b>Троллейбусы 25,36:</b></p>
+                  <p>Время поездки: <b>~10 мин (4 остановок)</b></p>
+                  <p>Конечная остановка: <b>Профессорская</b></p>
+                  <p><b>ИЛИ 60,89:</b></p>
+                  <p>Время поездки: <b>~15 мин (8 остановок)</b></p>
+                  <p>Конечная остановка: <b>УРФУ</b></p>
+                  <p>Пешком: <b>5 мин</b></p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. SHOPS / FOOD -->
+      <section id="shops" class="section">
+        <div class="card">
+          <h2 style="margin-top:0">Закупки / еда (услуги)</h2>
+          <div class="pills" role="tablist" aria-label="Места">
+            <span class="pill active" data-subtab="wb">Wildberries</span>
+            <span class="pill" data-subtab="ozon">Ozon</span>
+            <span class="pill" data-subtab="life">Жизньмарт</span>
+            <span class="pill" data-subtab="china">Китайский магазин-закусочная</span>
+            <span class="pill" data-subtab="monetka">Монетка</span>
+            <span class="pill" data-subtab="copy">Копицентр</span>
+          </div>
+
+          <div class="subtab wb">
+            <div class="mini">
+              <img src="https://i.postimg.cc/yNLsmVX0/2025-09-03-170257.png" alt="Wildberries" />
+              <div>
+                <h3>Wildberries</h3>
+                <p>Улица: <b>Новороссийский бульвар 7</b></p>
+                <p>Время пешком: <b>~16 мин</b></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="subtab ozon" style="display:none">
+            <div class="mini">
+              <img src="https://i.postimg.cc/QxKCjWgw/2025-09-03-170153.png" alt="Ozon" />
+              <div>
+                <h3>Ozon</h3>
+                <p>Улица: <b>Новороссийский бульвар 7/5</b></p>
+                <p>Время пешком: <b>~16 мин</b></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="subtab life" style="display:none">
+            <div class="mini">
+              <img src="https://i.postimg.cc/13P8M36d/2025-09-03-170523.png" alt="Жизньмарт" />
+              <div>
+                <h3>Жизньмарт</h3>
+                <p>Улица: <b>Универсиады 7, 1 этаж</b></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="subtab china" style="display:none">
+            <div class="mini">
+              <img src="https://i.postimg.cc/L63nhg0s/2025-09-03-184958.png" alt="Китайский магазин" />
+              <div>
+                <h3>Китайский магазин-закусочная</h3>
+              </div>
+            </div>
+          </div>
+
+          <div class="subtab monetka" style="display:none">
+            <div class="mini">
+              <img src="https://i.postimg.cc/WznBv8Wg/2025-09-03-171611.png" alt="Монетка" />
+              <div>
+                <h3>Монетка</h3>
+                <p>Улица: <b>Варшавская 26</b></p>
+                <p>Время пешком: <b>~ 34 мин</b></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="subtab copy" style="display:none">
+            <div class="mini">
+              <img src="https://i.postimg.cc/jd2g2RCG/2025-09-03-171831.png" alt="Копицентр" />
+              <div>
+                <h3>Копицентр</h3>
+                <p>Улица: <b>Улица 100-летия Уральского университета, 6</b></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. 3D CAMPUS -->
+      <section id="campus" class="section">
+        <div class="card">
+          <h2 style="margin-top:0">3D-модель нового кампуса</h2>
+          <p style="margin-top:0; opacity:.95">
+            Уже совсем скоро распахнёт двери новый учебный корпус — светлый, технологичный и уютный. 
+            Исследуй кампус в 3D, находи аудитории, столовые, кулеры, туалеты и точки сортировки отходов.
+          </p>
+
+          <model-viewer id="mv"
+            src="https://drive.google.com/uc?export=download&id=1uBlm3ggett_gF96IObauTKAHKsmWHXSo"
+            alt="3D модель нового кампуса"
+            camera-controls
+            exposure="1.1"
+            ar
+            shadow-intensity="0.8"
+            orientation="0deg 0deg 0deg"
+            interaction-prompt="none">
+            
+            <!-- Примеры хотспотов. Замените data-position на ваши координаты -->
+            <!-- Туалет -->
+            <div class="hotspot" slot="hotspot-toilet-1"
+                 data-position="0.8m 0.3m 0.4m" data-normal="0 1 0">
+              <button class="hotspot-btn" data-title="Туалет" data-text="Женский туалет, 1 этаж">
+                <!-- toilet icon -->
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M7 4a3 3 0 110 6A3 3 0 017 4zm-3 8h6v8H9v-3H5v3H4v-8zm12-6h4v2h-4v6h3v2h-8v-2h3V6z"/></svg>
+                Туалет
+              </button>
+              <div class="tip"><h4>Туалет</h4><p>Женский туалет, 1 этаж</p></div>
+            </div>
+
+            <!-- Аудитория -->
+            <div class="hotspot" slot="hotspot-aud-201"
+                 data-position="-0.4m 0.5m 0.2m" data-normal="0 1 0">
+              <button class="hotspot-btn" data-title="Аудитория 201" data-text="Лекционная, 120 мест">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M3 4h18v2H3V4zm2 4h14v10H5V8zm2 2v6h10v-6H7z"/></svg>
+                Ауд. 201
+              </button>
+              <div class="tip"><h4>Аудитория 201</h4><p>Лекционная, 120 мест</p></div>
+            </div>
+
+            <!-- Столовая -->
+            <div class="hotspot" slot="hotspot-cafe-1"
+                 data-position="0.2m 0.25m -0.6m" data-normal="0 1 0">
+              <button class="hotspot-btn" data-title="Столовая" data-text="Открыта 8:00–19:00">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M7 2h2v9H7V2zm4 0h2v9a3 3 0 01-2 2.82V22h-2v-8.18A3 3 0 0111 11V2zm6 7h2v13h-2V9z"/></svg>
+                Столовая
+              </button>
+              <div class="tip"><h4>Столовая</h4><p>Открыта 8:00–19:00</p></div>
+            </div>
+
+            <!-- Кулер -->
+            <div class="hotspot" slot="hotspot-cooler-1"
+                 data-position="-0.9m 0.28m -0.1m" data-normal="0 1 0">
+              <button class="hotspot-btn" data-title="Кулер" data-text="Питьевая вода">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M6 2h12l-1 4H7L6 2zm2 6h8v14H8V8zm2 4h4v2h-4v-2z"/></svg>
+                Кулер
+              </button>
+              <div class="tip"><h4>Кулер</h4><p>Питьевая вода</p></div>
+            </div>
+
+            <!-- Мусорка -->
+            <div class="hotspot" slot="hotspot-trash-1"
+                 data-position="1m 0.22m 0.1m" data-normal="0 1 0">
+              <button class="hotspot-btn" data-title="Сортировка" data-text="Пластик · Бумага">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M4 7h16l-1 14H5L4 7zm3-3h10l1 2H6l1-2z"/></svg>
+                Мусор
+              </button>
+              <div class="tip"><h4>Сортировка</h4><p>Пластик · Бумага</p></div>
+            </div>
+
+          </model-viewer>
+
+          <div id="err3d" class="err3d">
+            ⚠️ Не удалось загрузить 3D-модель. Убедитесь, что ссылка доступна по Интернету. 
+            Если вы используете Google Drive, настройте общий доступ «по ссылке» и используйте формат: 
+            <code>https://drive.google.com/uc?export=download&id=ID_ФАЙЛА</code>.
+          </div>
+
+          <p style="opacity:.85; font-size:13px; margin-top:8px">
+            Подсказка: чтобы поставить метки точно, воспользуйтесь отладчиком координат и
+            замените значения <code>data-position</code> у хотспотов (единицы — метры).
+          </p>
+        </div>
+      </section>
+
+      <!-- 4. LINKS -->
+      <section id="links" class="section">
+        <div class="card">
+          <h2 style="margin-top:0">Полезные ссылки</h2>
+          <ul>
+            <li><a class="link-btn" href="https://singularity-app.ru/blog/spisok-veshchey-v-obshchezhitie/" target="_blank" rel="noopener">Что брать с собой в общежитие</a></li>
+            <li><a class="link-btn" href="https://www.gastronom.ru/text/chto-prigotovit-golodnomu-studentu-vkusno-i-nedorogo-1017005?ysclid=mf41r156u0870301994" target="_blank" rel="noopener">Общажные рецепты</a></li>
+            <li><a class="link-btn" href="https://mel.fm/blog/stanisaw-samburskiy/38452-5-strakhov-pervokursnikov-i-kak-s-nimi-spravitsya?ysclid=mf41t2g4ty946305803" target="_blank" rel="noopener">Страхи первокурсников</a></li>
+            <li><a class="link-btn" href="https://life.akbars.ru/personal-finance/ekonomim/finansovaya-gramotnost-dlya-studentov-kak-podgotovit-rebenka-k-samostoyatelnoy-zhizni/?ysclid=mf41vslxiy885955030" target="_blank" rel="noopener">Финансовая грамотность для студентов</a></li>
+            <li><a class="link-btn" href="https://dzen.ru/a/aJC1zVGUOW9CImrE?ysclid=mf41z4sv5y332875416" target="_blank" rel="noopener">Чем заняться в вузе первокурснику</a></li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 5. DORM GALLERY -->
+      <section id="dorm" class="section">
+        <div class="card">
+          <h2 style="margin-top:0">Общежитие — фото</h2>
+          <div class="gallery">
+            <a href="https://leonardo.osnova.io/6545f03c-e66f-5605-92b1-e69f2c3d26d1" target="_blank" rel="noopener">
+              <img src="https://leonardo.osnova.io/6545f03c-e66f-5605-92b1-e69f2c3d26d1" alt="Общежитие 1">
+            </a>
+            <a href="https://leonardo.osnova.io/6545f03c-e66f-5605-92b1-e69f2c3d26d1" target="_blank" rel="noopener">
+              <img src="https://leonardo.osnova.io/6545f03c-e66f-5605-92b1-e69f2c3d26d1" alt="Общежитие 2">
+            </a>
+            <a href="https://leonardo.osnova.io/ab01107c-9ad4-55d0-821a-38dccc20c3f1" target="_blank" rel="noopener">
+              <img src="https://leonardo.osnova.io/ab01107c-9ad4-55d0-821a-38dccc20c3f1" alt="Комната 1">
+            </a>
+            <a href="https://leonardo.osnova.io/ced75050-b640-577f-94ef-22022c7f531f" target="_blank" rel="noopener">
+              <img src="https://leonardo.osnova.io/ced75050-b640-577f-94ef-22022c7f531f" alt="Комната 2">
+            </a>
+            <a href="https://leonardo.osnova.io/613f7205-7fa0-523e-80f4-cc929422841c" target="_blank" rel="noopener">
+              <img src="https://leonardo.osnova.io/613f7205-7fa0-523e-80f4-cc929422841c" alt="Комната 3">
+            </a>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <footer>© Навигатор абитуриента НВК — сделано с любовью к первокурсникам 💙</footer>
+  </div>
+
+  <script>
+    // Top Tabs
+    const tabButtons = document.querySelectorAll('.tab-btn[data-tab]');
+    const sections = document.querySelectorAll('.section');
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabButtons.forEach(b => b.classList.toggle('active', b === btn));
+        sections.forEach(sec => sec.classList.toggle('active', sec.id === btn.dataset.tab));
+      });
+    });
+
+    // Inner subtabs (pills)
+    document.querySelectorAll('.pills').forEach(group => {
+      const pills = group.querySelectorAll('.pill');
+      const card = group.closest('.card');
+      pills.forEach(pill => {
+        pill.addEventListener('click', () => {
+          pills.forEach(p => p.classList.toggle('active', p===pill));
+          // hide/show subtabs inside same card
+          card.querySelectorAll('.subtab').forEach(st => {
+            st.style.display = st.classList.contains(pill.dataset.subtab) ? '' : 'none';
+          });
+        });
+      });
+    });
+
+    // Hotspot tooltips pinned next to the hotspot element
+    const mv = document.getElementById('mv');
+    mv.addEventListener('click', (e) => {
+      // Close all if click on empty space
+      if(e.target === mv) {
+        mv.querySelectorAll('.hotspot').forEach(h => h.classList.remove('hotspot-open'));
+      }
+    });
+
+    mv.querySelectorAll('.hotspot-btn').forEach(btn => {
+      btn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const wrapper = btn.closest('.hotspot');
+        const wasOpen = wrapper.classList.contains('hotspot-open');
+        mv.querySelectorAll('.hotspot').forEach(h => h.classList.remove('hotspot-open'));
+        if(!wasOpen){ wrapper.classList.add('hotspot-open'); }
+        // update text from data-*
+        const tip = wrapper.querySelector('.tip');
+        tip.querySelector('h4').textContent = btn.dataset.title || 'Инфо';
+        tip.querySelector('p').textContent = btn.dataset.text || '';
+      });
+    });
+
+    // Keep tooltips on-screen (basic)
+    function clampTooltips(){
+      mv.querySelectorAll('.tip').forEach(t => {
+        const r = t.getBoundingClientRect();
+        const dx = Math.max(12 - (r.left), 0) + Math.max((r.right) - (innerWidth - 12), 0);
+        t.style.marginLeft = (dx ? (-dx/2)+'px' : '0');
+      });
+    }
+    new ResizeObserver(clampTooltips).observe(document.body);
+    mv.addEventListener('camera-change', clampTooltips);
+    mv.addEventListener('load', clampTooltips);
+
+    // Basic error handling for 3D
+    mv.addEventListener('error', () => {
+      document.getElementById('err3d').style.display = 'block';
+    });
+  </script>
+</body>
+</html>
